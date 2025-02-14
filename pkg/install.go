@@ -6,14 +6,28 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 )
 
 func InstallService(c *cli.Context) error {
+	username := "socks-tunnel-user"
+
+	_, err := user.Lookup(username)
+	if err != nil {
+		// User doesn't exist, create it
+		cmd := exec.Command("useradd", "-m", username)
+		err = cmd.Run()
+		if err != nil {
+			log.Fatalf("Failed to create user: %v", err)
+		}
+	}
+
 	serviceFile := `[Unit]
 Description=SOCKS Tunnel Service
 After=network.target
 
 [Service]
+User=%s
 ExecStart=%s run
 Restart=on-failure
 
@@ -26,7 +40,7 @@ WantedBy=multi-user.target
 		log.Fatalf("Failed to get executable path: %v", err)
 	}
 
-	serviceContent := fmt.Sprintf(serviceFile, executablePath)
+	serviceContent := fmt.Sprintf(serviceFile, username, executablePath)
 	servicePath := "/etc/systemd/system/socks-tunnel.service"
 
 	if err := os.WriteFile(servicePath, []byte(serviceContent), 0644); err != nil {
