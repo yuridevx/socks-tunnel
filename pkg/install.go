@@ -1,13 +1,36 @@
 package pkg
 
 import (
-	"fmt"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
+	"text/template"
 )
+
+type ServiceData struct {
+	Username         string
+	ExecutablePath   string
+	WorkingDirectory string
+}
+
+func createServiceTemplate() string {
+	return `[Unit]
+Description=SOCKS Tunnel Service
+After=network.target
+
+[Service]
+User={{.Username}}
+ExecStart={{.ExecutablePath}} run
+WorkingDirectory={{.WorkingDirectory}}
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+`
+}
 
 func InstallService(c *cli.Context) error {
 	username := "socks-tunnel-user"
@@ -22,29 +45,34 @@ func InstallService(c *cli.Context) error {
 		}
 	}
 
-	serviceFile := `[Unit]
-Description=SOCKS Tunnel Service
-After=network.target
-
-[Service]
-User=%s
-ExecStart=%s run
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-`
+	serviceFile := createServiceTemplate()
 
 	executablePath, err := os.Executable()
 	if err != nil {
 		log.Fatalf("Failed to get executable path: %v", err)
 	}
 
-	serviceContent := fmt.Sprintf(serviceFile, username, executablePath)
-	servicePath := "/etc/systemd/system/socks-tunnel.service"
+	tmpl, err := template.New("service").Parse(serviceFile)
+	if err != nil {
+		log.Fatalf("Failed to parse template: %v", err)
+	}
 
-	if err := os.WriteFile(servicePath, []byte(serviceContent), 0644); err != nil {
-		log.Fatalf("Failed to write service file: %v", err)
+	data := ServiceData{
+		Username:         username,
+		ExecutablePath:   executablePath,
+		WorkingDirectory: filepath.Dir(executablePath),
+	}
+
+	servicePath := "/etc/systemd/system/socks-tunnel.service"
+	file, err := os.Create(servicePath)
+	if err != nil {
+		log.Fatalf("Failed to create service file: %v", err)
+	}
+	defer file.Close()
+
+	err = tmpl.Execute(file, data)
+	if err != nil {
+		log.Fatalf("Failed to execute template: %v", err)
 	}
 
 	if err := exec.Command("systemctl", "daemon-reload").Run(); err != nil {
