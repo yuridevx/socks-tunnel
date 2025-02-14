@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"context"
 	"errors"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/net/proxy"
@@ -55,7 +54,6 @@ func RunTunnel(c *cli.Context) error {
 }
 
 func handleConnection(clientConn net.Conn, remoteAddr, username, password string) {
-	defer clientConn.Close()
 	auth := proxy.Auth{
 		User:     username,
 		Password: password,
@@ -71,24 +69,12 @@ func handleConnection(clientConn net.Conn, remoteAddr, username, password string
 		log.Printf("Failed to connect to remote SOCKS5 server: %v", err)
 		return
 	}
-	ctx, cancel := context.WithCancelCause(context.Background())
 	go func() {
-		_, err := io.Copy(remoteConn, clientConn)
-		if err != nil {
-			cancel(err)
-			log.Printf("Failed to copy data to remote server: %v", err)
-			return
-		}
-		cancel(ErrCanceled)
+		io.Copy(remoteConn, clientConn)
+		remoteConn.Close()
 	}()
 	go func() {
-		_, err := io.Copy(clientConn, remoteConn)
-		if err != nil {
-			cancel(err)
-			log.Printf("Failed to copy data to client: %v", err)
-			return
-		}
-		cancel(ErrCanceled)
+		io.Copy(clientConn, remoteConn)
+		clientConn.Close()
 	}()
-	<-ctx.Done()
 }
