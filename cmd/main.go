@@ -40,22 +40,26 @@ func main() {
 				Usage: "Run the SOCKS tunnel",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:    "localAddr",
+						Name:    "local",
+						Aliases: []string{"l"},
 						Usage:   "Local address to listen on",
 						EnvVars: []string{"SOCKS_TUNNEL_LOCAL_ADDR"},
 					},
 					&cli.StringFlag{
-						Name:    "remoteAddr",
+						Name:    "remote",
+						Aliases: []string{"r"},
 						Usage:   "Remote SOCKS5 server address",
 						EnvVars: []string{"SOCKS_TUNNEL_REMOTE_ADDR"},
 					},
 					&cli.StringFlag{
 						Name:    "username",
+						Aliases: []string{"u"},
 						Usage:   "Username for SOCKS5 authentication",
 						EnvVars: []string{"SOCKS_TUNNEL_USERNAME"},
 					},
 					&cli.StringFlag{
 						Name:    "password",
+						Aliases: []string{"p"},
 						Usage:   "Password for SOCKS5 authentication",
 						EnvVars: []string{"SOCKS_TUNNEL_PASSWORD"},
 					},
