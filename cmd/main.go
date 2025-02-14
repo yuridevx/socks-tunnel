@@ -3,19 +3,10 @@ package main
 import (
 	"github.com/spf13/viper"
 	"github.com/urfave/cli/v2"
+	"github.com/yuridevx/socks-tunnel/pkg"
 	"log"
 	"os"
 )
-
-// Config holds the configuration values
-type Config struct {
-	LocalAddr  string `mapstructure:"localAddr"`
-	RemoteAddr string `mapstructure:"remoteAddr"`
-	Username   string `mapstructure:"username"`
-	Password   string `mapstructure:"password"`
-}
-
-var config Config
 
 func initConfig() {
 	viper.SetConfigName("socks-tunnel") // name of config file (without extension)
@@ -31,7 +22,7 @@ func initConfig() {
 		log.Printf("Warning: Could not read config file, %s", err)
 	} else {
 		// Unmarshal the configuration into the Config struct
-		if err := viper.Unmarshal(&config); err != nil {
+		if err := viper.Unmarshal(&pkg.ConfigInst); err != nil {
 			log.Fatalf("Unable to decode into struct, %v", err)
 		}
 	}
@@ -69,12 +60,12 @@ func main() {
 						EnvVars: []string{"SOCKS_TUNNEL_PASSWORD"},
 					},
 				},
-				Action: runTunnel,
+				Action: pkg.RunTunnel,
 			},
 			{
 				Name:   "install",
 				Usage:  "Install as a systemd service",
-				Action: installService,
+				Action: pkg.InstallService,
 			},
 		},
 	}

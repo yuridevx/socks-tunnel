@@ -18,7 +18,7 @@ jobs:
           go-version: 1.24
 
       - name: Build binary
-        run: go build -v -o tunnel ./cmd/tunnel.go
+        run: go build -v -o socks-tunnel ./cmd/main.go
 
       - name: Create Release
         id: create_release
@@ -38,6 +38,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./tunnel
-          asset_name: tunnel
+          asset_path: ./socks-tunnel
+          asset_name: socks-tunnel
           asset_content_type: application/octet-stream

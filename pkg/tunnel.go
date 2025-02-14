@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"context"
@@ -14,16 +14,16 @@ import (
 
 var ErrCanceled = errors.New("operation canceled")
 
-func runTunnel(c *cli.Context) error {
+func RunTunnel(c *cli.Context) error {
 	// Override config values with command line flags if they are set
 	// ...
 
-	listener, err := net.Listen("tcp", config.LocalAddr)
+	listener, err := net.Listen("tcp", ConfigInst.LocalAddr)
 	if err != nil {
-		log.Fatalf("Failed to listen on %s: %v", config.LocalAddr, err)
+		log.Fatalf("Failed to listen on %s: %v", ConfigInst.LocalAddr, err)
 	}
 	defer listener.Close()
-	log.Printf("Listening on %s", config.LocalAddr)
+	log.Printf("Listening on %s", ConfigInst.LocalAddr)
 
 	// Create a channel to listen for interrupt signal
 	interrupt := make(chan os.Signal, 1)
@@ -50,7 +50,7 @@ func runTunnel(c *cli.Context) error {
 			continue
 		}
 
-		go handleConnection(clientConn, config.RemoteAddr, config.Username, config.Password)
+		go handleConnection(clientConn, ConfigInst.RemoteAddr, ConfigInst.Username, ConfigInst.Password)
 	}
 }
 

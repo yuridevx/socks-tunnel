@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"os/exec"
 )
 
-func installService(c *cli.Context) error {
+func InstallService(c *cli.Context) error {
 	serviceFile := `[Unit]
 Description=SOCKS Tunnel Service
 After=network.target
