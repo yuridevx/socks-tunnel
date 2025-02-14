@@ -14,6 +14,8 @@ type ServiceData struct {
 	Username         string
 	ExecutablePath   string
 	WorkingDirectory string
+	LimitCPU         string
+	MemoryLimit      string
 }
 
 func createServiceTemplate() string {
@@ -25,6 +27,8 @@ After=network.target
 User={{.Username}}
 ExecStart={{.ExecutablePath}} run
 WorkingDirectory={{.WorkingDirectory}}
+LimitCPU={{.LimitCPU}}
+MemoryLimit={{.MemoryLimit}}
 Restart=on-failure
 
 [Install]
@@ -34,6 +38,8 @@ WantedBy=multi-user.target
 
 func InstallService(c *cli.Context) error {
 	username := "socks-tunnel-user"
+	limitCPU := "500m"    // 50% of a single CPU core
+	memoryLimit := "256M" // 256 Megabytes
 
 	_, err := user.Lookup(username)
 	if err != nil {
@@ -61,6 +67,8 @@ func InstallService(c *cli.Context) error {
 		Username:         username,
 		ExecutablePath:   executablePath,
 		WorkingDirectory: filepath.Dir(executablePath),
+		LimitCPU:         limitCPU,
+		MemoryLimit:      memoryLimit,
 	}
 
 	servicePath := "/etc/systemd/system/socks-tunnel.service"
